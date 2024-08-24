@@ -1,10 +1,9 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import permissions, viewsets
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
-from django.shortcuts import redirect
 
 from django.db.models import Q
 
@@ -16,12 +15,21 @@ from .serializers import AdvocateSerializer, CompanySerializer
 
 
 @api_view(["GET"])
-def endpoints(request):
-    data = ["/advocates", "advocates/:username"]
+def status(request):
+    data = {
+        "status": "Server is in good health",
+        "endpoints": [
+            "/v1/healthcheck",
+            "/v1/advocates",
+            "/v1/advocates/:username",
+            "/v1/companies",
+        ],
+    }
     return Response(data)
 
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def advocates_list(request):
     """
     API endpoint for geting and adding advocates
@@ -45,8 +53,8 @@ def advocates_list(request):
         return Response(serializer.data)
 
 
+@permission_classes([IsAuthenticated])
 class AdvocateDetail(APIView):
-
     def get_object(self, username):
         try:
             return Advocate.objects.get(username=username)
